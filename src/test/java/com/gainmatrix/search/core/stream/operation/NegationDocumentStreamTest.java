@@ -70,18 +70,27 @@ public class NegationDocumentStreamTest {
     }
 
     @Test
+    public void testSeekSame() throws Exception {
+        Assert.assertEquals(3, stream.seek(3L));
+        Assert.assertEquals(3, stream.getId());
+
+        Assert.assertEquals(4, stream.seek(3L));
+        Assert.assertEquals(4, stream.getId());
+    }
+
+    @Test
     public void testVisit() throws Exception {
         DocumentStreamVisitorSpy<Long> spy = new DocumentStreamVisitorSpy<Long>();
 
         spy.reset();
         Assert.assertEquals(4L, stream.seek(4L));
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1001L));
+        Assert.assertTrue(spy.check(1000L, 1001L));
 
         spy.reset();
         Assert.assertEquals(8L, stream.next());
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1001L));
+        Assert.assertTrue(spy.check(1000L, 1001L));
     }
 }
 

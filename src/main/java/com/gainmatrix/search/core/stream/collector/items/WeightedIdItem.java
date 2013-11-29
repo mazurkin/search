@@ -34,7 +34,7 @@ public class WeightedIdItem implements WeightedCollectorItem, Comparable<Weighte
         return Longs.compare(this.weight, that.weight);
     }
 
-    public static class Factory implements WeightedCollectorItem.Factory<WeightedIdItem> {
+    public static final class Factory implements WeightedCollectorItem.Factory<WeightedIdItem> {
 
         public static final Factory INSTANCE = new Factory();
 

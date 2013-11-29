@@ -19,12 +19,6 @@ public interface DocumentStream<M> extends DocumentStreamState<M>, DocumentStrea
     DocumentStreamDescription open();
 
     /**
-     * Request stream meta information
-     * @return Meta description
-     */
-    M getMeta();
-
-    /**
      * Закрывает поток и освобождает занятые им ресурсы. Метод может быть вызван в любой момент и должен допускать
      * повторные вызовы, в том числе и вызовы осуществляемые без предварительного вызова метода open()
      */

@@ -10,30 +10,36 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 
 /**
- * Операционный поток-прокси реализующий операцию пересечения (AND)
+ * Операционный поток-прокси с операцией пересечения (AND) в котором участвуют по меньшей мере <b>quorum</b> потоков
  */
-public final class ConjunctionDocumentStream<M> extends AbstractDocumentStream<M> {
+public final class QuorumDocumentStream<M> extends AbstractDocumentStream<M> {
 
     private final Collection<DocumentStream<M>> allStreams;
 
     private final CursorContainer<DocumentStream<M>> activeStreams;
 
+    private int quorum;
+
     private long id;
 
-    public ConjunctionDocumentStream(M meta, Collection<DocumentStream<M>> streams) {
+    public QuorumDocumentStream(M meta, Collection<DocumentStream<M>> streams, int quorum) {
         super(meta);
 
         Preconditions.checkNotNull(streams, "Container is null");
 
+        Preconditions.checkArgument(quorum > 1, "Ineffective usage - use DisjunctionDocumentStream");
+        Preconditions.checkArgument(quorum < streams.size(), "Ineffective usage - use ConjunctionDocumentStream");
+
         this.id = NO_DOCUMENT;
         this.allStreams = streams;
         this.activeStreams = new CursorContainer<DocumentStream<M>>(streams.size());
+        this.quorum = quorum;
     }
 
     @Override
     public DocumentStreamDescription open() {
-        long minimumMaxId = Long.MAX_VALUE;
-        long maximumMinId = Long.MIN_VALUE;
+        long minId = Long.MAX_VALUE;
+        long maxId = Long.MIN_VALUE;
 
         int[] counts = new int[allStreams.size()];
 
@@ -46,40 +52,39 @@ public final class ConjunctionDocumentStream<M> extends AbstractDocumentStream<M
                 long streamMinId = description.getMinId();
                 long streamMaxId = description.getMaxId();
 
-                if (streamMinId > maximumMinId) {
-                    maximumMinId = streamMinId;
+                if (streamMinId < minId) {
+                    minId = streamMinId;
                 }
-                if (streamMaxId < minimumMaxId) {
-                    minimumMaxId = streamMaxId;
-                }
-
-                if (minimumMaxId < maximumMinId) {
-                    activeStreams.clear();
-                    break;
+                if (streamMaxId > maxId) {
+                    maxId = streamMaxId;
                 }
 
                 counts[activeStreams.size()] = streamCount;
 
                 activeStreams.add(stream);
-            } else {
-                activeStreams.clear();
-                break;
             }
         }
 
         // Sort all the stream by ascending number of documents so the first stream has minimal number of documents
-        if (!activeStreams.isEmpty()) {
+        if (activeStreams.size() >= quorum) {
             activeStreams.sortWithWeights(counts);
-            int count = counts[0];
-            return new DocumentStreamDescriptor(count, maximumMinId, minimumMaxId);
+            int count = calculateCount(counts, activeStreams.size(), quorum);
+            return new DocumentStreamDescriptor(count, minId, maxId);
         } else {
+            activeStreams.clear();
             return DocumentStreamDescriptor.EMPTY;
         }
     }
 
-    @Override
-    public long getId() {
-        return id;
+    private static int calculateCount(int[] sortedCounts, int size, int quorum) {
+        long sum = 0;
+
+        // inaccurate but simple and valid upper bound estimation
+        for (int i = 0; i < size; i++) {
+            sum += sortedCounts[i];
+        }
+
+        return (int) (sum / quorum);
     }
 
     @Override
@@ -89,8 +94,15 @@ public final class ConjunctionDocumentStream<M> extends AbstractDocumentStream<M
         activeStreams.cursorReset();
         while (activeStreams.hasCursorNext()) {
             DocumentStream<M> stream = activeStreams.cursorNext();
-            stream.visit(visitor);
+            if (id == stream.getId()) {
+                stream.visit(visitor);
+            }
         }
+    }
+
+    @Override
+    public long getId() {
+        return id;
     }
 
     @Override
@@ -106,27 +118,44 @@ public final class ConjunctionDocumentStream<M> extends AbstractDocumentStream<M
 
         long currentTargetId = targetId;
 
+        int found = 0;
+        long minNextId = Long.MAX_VALUE;
+
         activeStreams.cursorReset();
-        while (activeStreams.hasCursorNext()) {
+        while (activeStreams.hasCursorNext() && (activeStreams.size() >= quorum)) {
             DocumentStream stream = activeStreams.cursorNext();
 
             long streamId = stream.getId();
             if ((streamId < currentTargetId) || (streamId == id)) {
                 if ((streamId = stream.seek(currentTargetId)) == NO_DOCUMENT) {
-                    activeStreams.clear();
-                    return (id = NO_DOCUMENT);
+                    activeStreams.cursorDelete();
+                    continue;
                 }
             }
 
-            if (streamId > currentTargetId) {
-                currentTargetId = streamId;
-                if (activeStreams.cursorIndex() > 0) {
-                    activeStreams.cursorReset();
-                }
+            if ((streamId > currentTargetId) && (streamId < minNextId)) {
+                minNextId = streamId;
+            }
+
+            if (streamId == currentTargetId) {
+                found++;
+            }
+
+            if (quorum - found >= activeStreams.size() - activeStreams.cursorIndex()) {
+                activeStreams.cursorReset();
+                currentTargetId = minNextId;
+                found = 0;
+                minNextId = Long.MAX_VALUE;
+                continue;
+            }
+
+            if (found == quorum) {
+                return (id = currentTargetId);
             }
         }
 
-        return (id = currentTargetId);
+        activeStreams.clear();
+        return (id = NO_DOCUMENT);
     }
 
     @Override

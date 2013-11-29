@@ -1,13 +1,13 @@
 package com.gainmatrix.search.core.stream.container;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
+import com.gainmatrix.search.core.stream.operation.AbstractDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.description.DocumentStreamDescriptor;
 
 /**
  * Stream for a singleton document
  */
-public final class SingletonDocumentStream<M> extends AbstractMetaDocumentStream<M> {
+public final class SingletonDocumentStream<M> extends AbstractDocumentStream<M> {
 
     private final long id;
 

@@ -1,14 +1,14 @@
 package com.gainmatrix.search.core.stream.container;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.description.DocumentStreamDescriptor;
+import com.gainmatrix.search.core.stream.operation.AbstractDocumentStream;
 import com.google.common.base.Preconditions;
 
 /**
  * Array-based container with binary search for seek() operation
  */
-public final class ArrayDocumentStream<M> extends AbstractMetaDocumentStream<M> {
+public final class ArrayDocumentStream<M> extends AbstractDocumentStream<M> {
 
     public final static int NO_LOOKAHEAD_STEPS = 0;
 
@@ -97,7 +97,7 @@ public final class ArrayDocumentStream<M> extends AbstractMetaDocumentStream<M> 
         int rightIndex = items.length - 1;
 
         while (leftIndex < rightIndex) {
-            int medianIndex = (rightIndex + leftIndex) / 2;
+            int medianIndex = (leftIndex + rightIndex) >>> 1;
             long medianItem = items[medianIndex];
 
             if (medianItem >= targetId) {
@@ -123,4 +123,12 @@ public final class ArrayDocumentStream<M> extends AbstractMetaDocumentStream<M> 
         // nothing to close
     }
 
+    @Override
+    public String toString() {
+        if ((0 <= index) && (index < items.length)) {
+            return "[" + index + "]=" + items[index];
+        } else {
+            return "NO_DOCUMENT";
+        }
+    }
 }

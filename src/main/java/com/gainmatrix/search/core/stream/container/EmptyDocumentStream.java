@@ -1,6 +1,6 @@
 package com.gainmatrix.search.core.stream.container;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
+import com.gainmatrix.search.core.stream.operation.AbstractDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
 import com.gainmatrix.search.core.stream.description.DocumentStreamDescriptor;
@@ -8,7 +8,7 @@ import com.gainmatrix.search.core.stream.description.DocumentStreamDescriptor;
 /**
  * Empty mock stream
  */
-public final class EmptyDocumentStream<M> extends AbstractMetaDocumentStream<M> {
+public final class EmptyDocumentStream<M> extends AbstractDocumentStream<M> {
 
     public EmptyDocumentStream(M meta) {
         super(meta);

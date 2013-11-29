@@ -1,6 +1,5 @@
 package com.gainmatrix.search.core.stream.operation;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
@@ -13,7 +12,7 @@ import java.util.Collection;
 /**
  * Операционный поток-прокси реализующий операцию объединения (OR)
  */
-public final class DisjunctionDocumentStream<M> extends AbstractMetaDocumentStream<M> {
+public final class DisjunctionDocumentStream<M> extends AbstractDocumentStream<M> {
 
     private final Collection<DocumentStream<M>> allStreams;
 
@@ -89,7 +88,7 @@ public final class DisjunctionDocumentStream<M> extends AbstractMetaDocumentStre
                 DocumentStream stream = activeStreams.getFirst();
                 long streamId = stream.getId();
 
-                if (id == streamId) {
+                if (streamId == id) {
                     if ((streamId = stream.next()) == NO_DOCUMENT) {
                         activeStreams.clear();
                         return (id = NO_DOCUMENT);
@@ -106,7 +105,7 @@ public final class DisjunctionDocumentStream<M> extends AbstractMetaDocumentStre
                     DocumentStream nextStream = activeStreams.cursorNext();
                     long nextStreamId = nextStream.getId();
 
-                    if (id == nextStreamId) {
+                    if (nextStreamId == id) {
                         if ((nextStreamId = nextStream.next()) == NO_DOCUMENT) {
                             activeStreams.cursorDelete();
                             continue;
@@ -135,7 +134,7 @@ public final class DisjunctionDocumentStream<M> extends AbstractMetaDocumentStre
             case 1:
                 DocumentStream stream = activeStreams.getFirst();
                 long streamId = stream.getId();
-                if (streamId < targetId) {
+                if ((streamId < targetId) || (streamId == id)) {
                     if ((streamId = stream.seek(targetId)) == NO_DOCUMENT) {
                         activeStreams.clear();
                         return (id = NO_DOCUMENT);
@@ -152,7 +151,7 @@ public final class DisjunctionDocumentStream<M> extends AbstractMetaDocumentStre
                     DocumentStream nextStream = activeStreams.cursorNext();
                     long nextStreamId = nextStream.getId();
 
-                    if (nextStreamId < targetId) {
+                    if ((nextStreamId < targetId) || (nextStreamId == id)) {
                         if ((nextStreamId = nextStream.seek(targetId)) == NO_DOCUMENT) {
                             activeStreams.cursorDelete();
                             continue;

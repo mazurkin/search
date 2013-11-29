@@ -18,7 +18,7 @@ public class DocumentStreamVisitorSpy<T> implements DocumentStreamVisitor<T> {
     }
 
     @Override
-    public void visit(T meta) {
+    public void notifyMeta(T meta) {
         found.put(meta, Boolean.TRUE);
     }
 
@@ -26,7 +26,7 @@ public class DocumentStreamVisitorSpy<T> implements DocumentStreamVisitor<T> {
         return found.containsKey(metas);
     }
 
-    public boolean equals(T... metas) {
+    public boolean check(T... metas) {
         if (this.found.size() != metas.length) {
             return false;
         }

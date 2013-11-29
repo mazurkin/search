@@ -1,6 +1,5 @@
 package com.gainmatrix.search.core.stream.operation;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
@@ -8,13 +7,11 @@ import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
 /**
  * Stream copies all documents from mandatory stream and puts optional stream to visitor
  */
-public final class OptionalDocumentStream<M> extends AbstractMetaDocumentStream<M> {
+public final class OptionalDocumentStream<M> extends AbstractDocumentStream<M> {
 
     private final DocumentStream<M> mandatoryStream;
 
     private final DocumentStream<M> optionalStream;
-
-    private long id;
 
     private boolean optionalEnabled;
 
@@ -23,7 +20,6 @@ public final class OptionalDocumentStream<M> extends AbstractMetaDocumentStream<
     public OptionalDocumentStream(M meta, DocumentStream<M> mandatoryStream, DocumentStream<M> optionalStream) {
         super(meta);
 
-        this.id = NO_DOCUMENT;
         this.mandatoryStream = mandatoryStream;
         this.optionalStream = optionalStream;
     }
@@ -40,7 +36,7 @@ public final class OptionalDocumentStream<M> extends AbstractMetaDocumentStream<
 
     @Override
     public long getId() {
-        return id;
+        return mandatoryStream.getId();
     }
 
     @Override
@@ -56,7 +52,8 @@ public final class OptionalDocumentStream<M> extends AbstractMetaDocumentStream<
 
     @Override
     public long next() {
-        if ((id = mandatoryStream.next()) == NO_DOCUMENT) {
+        long id = mandatoryStream.next();
+        if (id == NO_DOCUMENT) {
             return NO_DOCUMENT;
         }
 
@@ -80,7 +77,8 @@ public final class OptionalDocumentStream<M> extends AbstractMetaDocumentStream<
 
     @Override
     public long seek(long targetId) {
-        if ((id = mandatoryStream.seek(targetId)) == NO_DOCUMENT) {
+        long id = mandatoryStream.seek(targetId);
+        if (id == NO_DOCUMENT) {
             return NO_DOCUMENT;
         }
 
@@ -104,8 +102,6 @@ public final class OptionalDocumentStream<M> extends AbstractMetaDocumentStream<
 
     @Override
     public void close() {
-        id = NO_DOCUMENT;
-
         mandatoryStream.close();
         optionalStream.close();
     }

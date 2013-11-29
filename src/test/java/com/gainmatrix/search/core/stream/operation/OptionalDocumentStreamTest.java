@@ -76,17 +76,26 @@ public class OptionalDocumentStreamTest {
     }
 
     @Test
+    public void testSeekSame() throws Exception {
+        Assert.assertEquals(3, stream.seek(3L));
+        Assert.assertEquals(3, stream.getId());
+
+        Assert.assertEquals(7, stream.seek(3L));
+        Assert.assertEquals(7, stream.getId());
+    }
+
+    @Test
     public void testVisit() throws Exception {
         DocumentStreamVisitorSpy<Long> spy = new DocumentStreamVisitorSpy<Long>();
 
         spy.reset();
         Assert.assertEquals(3L, stream.seek(3L));
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1001L));
+        Assert.assertTrue(spy.check(1000L, 1001L));
 
         spy.reset();
         Assert.assertEquals(7L, stream.next());
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1001L, 1002L));
+        Assert.assertTrue(spy.check(1000L, 1001L, 1002L));
     }
 }

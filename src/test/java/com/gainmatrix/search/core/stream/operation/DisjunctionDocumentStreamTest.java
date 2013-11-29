@@ -90,28 +90,37 @@ public class DisjunctionDocumentStreamTest {
     }
 
     @Test
+    public void testSeekSame() throws Exception {
+        Assert.assertEquals(3L, stream.seek(3L));
+        Assert.assertEquals(3L, stream.getId());
+
+        Assert.assertEquals(4L, stream.seek(3L));
+        Assert.assertEquals(4L, stream.getId());
+    }
+
+    @Test
     public void testVisit() throws Exception {
         DocumentStreamVisitorSpy<Long> spy = new DocumentStreamVisitorSpy<Long>();
 
         spy.reset();
         Assert.assertEquals(4L, stream.seek(4L));
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1001L));
+        Assert.assertTrue(spy.check(1000L, 1001L));
 
         spy.reset();
         Assert.assertEquals(5L, stream.next());
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1002L));
+        Assert.assertTrue(spy.check(1000L, 1002L));
 
         spy.reset();
         Assert.assertEquals(7L, stream.next());
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1001L, 1002L));
+        Assert.assertTrue(spy.check(1000L, 1001L, 1002L));
 
         spy.reset();
         Assert.assertEquals(10L, stream.seek(10L));
         stream.visit(spy);
-        Assert.assertTrue(spy.equals(1000L, 1003L));
+        Assert.assertTrue(spy.check(1000L, 1003L));
     }
 
     @Test

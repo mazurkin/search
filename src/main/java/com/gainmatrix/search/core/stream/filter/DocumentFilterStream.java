@@ -1,6 +1,6 @@
 package com.gainmatrix.search.core.stream.filter;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
+import com.gainmatrix.search.core.stream.operation.AbstractDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
@@ -8,7 +8,7 @@ import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
 /**
  * Proxy filter stream to filter documents
  */
-public final class DocumentFilterStream<M> extends AbstractMetaDocumentStream<M> {
+public final class DocumentFilterStream<M> extends AbstractDocumentStream<M> {
 
     private final DocumentStream<M> stream;
 

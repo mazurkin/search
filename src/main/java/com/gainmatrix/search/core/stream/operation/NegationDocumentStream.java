@@ -1,6 +1,5 @@
 package com.gainmatrix.search.core.stream.operation;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
@@ -8,13 +7,13 @@ import com.gainmatrix.search.core.stream.DocumentStreamVisitor;
 /**
  * Операционный поток-прокси реализующий операцию вычитания (AND NOT)
  */
-public final class NegationDocumentStream<M> extends AbstractMetaDocumentStream<M> {
+public final class NegationDocumentStream<M> extends AbstractDocumentStream<M> {
 
     private final DocumentStream<M> positiveStream;
 
     private final DocumentStream<M> negativeStream;
 
-    private boolean activeFilter;
+    private boolean negativeEnabled;
 
     public NegationDocumentStream(M meta, DocumentStream<M> positiveStream, DocumentStream<M> negativeStream) {
         super(meta);
@@ -28,7 +27,7 @@ public final class NegationDocumentStream<M> extends AbstractMetaDocumentStream<
         DocumentStreamDescription description = positiveStream.open();
 
         negativeStream.open();
-        activeFilter = (negativeStream.next() != NO_DOCUMENT);
+        negativeEnabled = (negativeStream.next() != NO_DOCUMENT);
 
         return description;
     }
@@ -41,6 +40,7 @@ public final class NegationDocumentStream<M> extends AbstractMetaDocumentStream<
     @Override
     public void visit(DocumentStreamVisitor<M> visitor) {
         super.visit(visitor);
+
         positiveStream.visit(visitor);
     }
 
@@ -51,17 +51,17 @@ public final class NegationDocumentStream<M> extends AbstractMetaDocumentStream<
             return NO_DOCUMENT;
         }
 
-        while (activeFilter) {
+        while (negativeEnabled) {
             long negativeId = negativeStream.getId();
             if (positiveId < negativeId) {
                 break;
             } else if (positiveId > negativeId) {
-                activeFilter = (negativeStream.seek(positiveId) != NO_DOCUMENT);
+                negativeEnabled = (negativeStream.seek(positiveId) != NO_DOCUMENT);
             } else {
                 if ((positiveId = positiveStream.next()) == NO_DOCUMENT) {
                     return NO_DOCUMENT;
                 }
-                activeFilter = (negativeStream.next() != NO_DOCUMENT);
+                negativeEnabled = (negativeStream.next() != NO_DOCUMENT);
             }
         }
 
@@ -75,17 +75,17 @@ public final class NegationDocumentStream<M> extends AbstractMetaDocumentStream<
             return NO_DOCUMENT;
         }
 
-        while (activeFilter) {
+        while (negativeEnabled) {
             long negativeId = negativeStream.getId();
             if (positiveId < negativeId) {
                 break;
             } else if (positiveId > negativeId) {
-                activeFilter = (negativeStream.seek(positiveId) != NO_DOCUMENT);
+                negativeEnabled = (negativeStream.seek(positiveId) != NO_DOCUMENT);
             } else if (positiveId == negativeId) {
                 if ((positiveId = positiveStream.next()) == NO_DOCUMENT) {
                     return NO_DOCUMENT;
                 }
-                activeFilter = (negativeStream.next() != NO_DOCUMENT);
+                negativeEnabled = (negativeStream.next() != NO_DOCUMENT);
             }
         }
 

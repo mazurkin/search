@@ -1,6 +1,6 @@
 package com.gainmatrix.search.lucene.util;
 
-import com.gainmatrix.search.core.stream.AbstractMetaDocumentStream;
+import com.gainmatrix.search.core.stream.operation.AbstractDocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStream;
 import com.gainmatrix.search.core.stream.DocumentStreamDescription;
 import com.gainmatrix.search.core.stream.description.DocumentStreamDescriptor;
@@ -10,7 +10,7 @@ import org.apache.lucene.util.BytesRef;
 
 import java.io.IOException;
 
-public class DocsEnumDocumentProxyStream<T> extends AbstractMetaDocumentStream<T> {
+public class DocsEnumDocumentProxyStream<T> extends AbstractDocumentStream<T> {
 
     private final IndexReader indexReader;
 

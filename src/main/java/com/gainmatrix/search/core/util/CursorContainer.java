@@ -147,22 +147,22 @@ public final class CursorContainer<T> {
     }
 
     public void sortWithWeights(int[] weights) {
-        if ((weights == null) || (weights.length != count)) {
-            throw new IllegalArgumentException("The same array length expected");
+        if ((weights == null) || (weights.length < count)) {
+            throw new IllegalArgumentException("Weight array is too small");
         }
 
-        if (weights.length < 2) {
+        if (count < 2) {
             return;
         }
 
-        sortWithWeightInternal(weights, 0, weights.length - 1);
+        sortWithWeightInternal(weights, 0, count - 1);
     }
 
     private void sortWithWeightInternal(int[] weights, int leftLimit, int rightLimit) {
         int leftIndex = leftLimit;
         int rightIndex = rightLimit;
 
-        int pivot = weights[(leftIndex + rightIndex) / 2];
+        int pivot = weights[(leftIndex + rightIndex) >>> 1];
 
         while (leftIndex <= rightIndex) {
             while (weights[leftIndex] < pivot) {

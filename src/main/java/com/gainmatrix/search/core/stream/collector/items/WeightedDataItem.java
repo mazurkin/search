@@ -40,7 +40,7 @@ public class WeightedDataItem<T> implements WeightedCollectorItem, Comparable<We
         return Longs.compare(this.weight, that.weight);
     }
 
-    public static class Factory implements WeightedCollectorItem.Factory<WeightedDataItem>  {
+    public static final class Factory implements WeightedCollectorItem.Factory<WeightedDataItem>  {
 
         public static final Factory INSTANCE = new Factory();
 
