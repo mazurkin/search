@@ -24,7 +24,7 @@ public class QuorumDocumentStreamTest {
     public void setUp() throws Exception {
         long[] items1 = { 1, 2, 3, 5, 7, 9, 10 };
         long[] items2 = { 1, 3, 5, 7, 8 };
-        long[] items3 = { 1, 2, 8, 10 };
+        long[] items3 = { 1, 2, 3, 8, 10 };
 
         Collection<DocumentStream<Long>> children = Lists.newArrayList();
         children.add(new ArrayDocumentStream<Long>(1001L, items1));
@@ -102,7 +102,7 @@ public class QuorumDocumentStreamTest {
         spy.reset();
         Assert.assertEquals(3L, stream.seek(3L));
         stream.visit(spy);
-        Assert.assertTrue(spy.check(1000L, 1001L, 1002L));
+        Assert.assertTrue(spy.check(1000L, 1001L, 1002L, 1003L));
 
         spy.reset();
         Assert.assertEquals(5L, stream.next());
@@ -129,4 +129,24 @@ public class QuorumDocumentStreamTest {
         stream.close();
     }
 
+    @Test
+    public void testSeek2() throws Exception {
+        long[] items1 = { 121, 122, 123, 124, 125, 126, 127 };
+        long[] items2 = { 121, 141, 150, 160 };
+        long[] items3 = { 100, 101, 150, 160 };
+
+        Collection<DocumentStream<Long>> children = Lists.newArrayList();
+        children.add(new ArrayDocumentStream<Long>(1001L, items1));
+        children.add(new ArrayDocumentStream<Long>(1002L, items2));
+        children.add(new ArrayDocumentStream<Long>(1003L, items3));
+
+        DocumentStream<Long> stream = new QuorumDocumentStream<Long>(1000L, children, 2);
+        stream.open();
+
+        Assert.assertEquals(121L, stream.seek(100L));
+        Assert.assertEquals(150L, stream.seek(100L));
+        Assert.assertEquals(160L, stream.seek(160L));
+
+        stream.close();
+    }
 }

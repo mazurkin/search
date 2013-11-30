@@ -122,23 +122,20 @@ public final class QuorumDocumentStream<M> extends AbstractDocumentStream<M> {
         long minNextId = Long.MAX_VALUE;
 
         activeStreams.cursorReset();
-        while (activeStreams.hasCursorNext() && (activeStreams.size() >= quorum)) {
+        while (activeStreams.hasCursorNext()) {
             DocumentStream stream = activeStreams.cursorNext();
 
             long streamId = stream.getId();
             if ((streamId < currentTargetId) || (streamId == id)) {
                 if ((streamId = stream.seek(currentTargetId)) == NO_DOCUMENT) {
                     activeStreams.cursorDelete();
-                    continue;
                 }
-            }
-
-            if ((streamId > currentTargetId) && (streamId < minNextId)) {
-                minNextId = streamId;
             }
 
             if (streamId == currentTargetId) {
                 found++;
+            } else if ((streamId != NO_DOCUMENT) && (streamId > currentTargetId) && (streamId < minNextId)) {
+                minNextId = streamId;
             }
 
             if (quorum - found >= activeStreams.size() - activeStreams.cursorIndex()) {
@@ -146,16 +143,15 @@ public final class QuorumDocumentStream<M> extends AbstractDocumentStream<M> {
                 currentTargetId = minNextId;
                 found = 0;
                 minNextId = Long.MAX_VALUE;
-                continue;
-            }
-
-            if (found == quorum) {
-                return (id = currentTargetId);
             }
         }
 
-        activeStreams.clear();
-        return (id = NO_DOCUMENT);
+        if (found >= quorum) {
+            return (id = currentTargetId);
+        } else {
+            activeStreams.clear();
+            return (id = NO_DOCUMENT);
+        }
     }
 
     @Override
