@@ -122,7 +122,7 @@ public final class QuorumDocumentStream<M> extends AbstractDocumentStream<M> {
         long minNextId = Long.MAX_VALUE;
 
         activeStreams.cursorReset();
-        while (activeStreams.hasCursorNext()) {
+        while (activeStreams.hasCursorNext() && (activeStreams.size() >= quorum)) {
             DocumentStream stream = activeStreams.cursorNext();
 
             long streamId = stream.getId();
